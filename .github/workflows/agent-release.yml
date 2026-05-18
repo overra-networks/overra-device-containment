@@ -1,0 +1,86 @@
+name: Agent Release
+
+# Builds the cross-platform Overra agent binaries reproducibly and attaches
+# them to a GitHub Release. Triggered by pushing a semver tag (e.g. v0.2.0).
+# Can also be run manually against an existing tag via workflow_dispatch.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)build and release"
+        required: true
+
+permissions:
+  contents: write # required to create the release and upload assets
+
+defaults:
+  run:
+    working-directory: overra-agent
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    env:
+      # Pure-Go static builds: no libc dependency, byte-stable across runners.
+      # None of the deps (kardianos/service, x/sys, lib/pq) require cgo.
+      CGO_ENABLED: "0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: overra-agent/go.mod
+          cache-dependency-path: overra-agent/go.sum
+
+      - name: Verify modules
+        run: |
+          go mod download
+          go mod verify
+
+      - name: Test
+        run: go test -cover ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build all platforms
+        run: make all
+
+      - name: Generate checksums
+        working-directory: agents
+        run: |
+          sha256sum overra-agent-* > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Publish release
+        working-directory: agents
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TAG — Agent binaries" \
+            --generate-notes \
+            overra-agent-linux-amd64 \
+            overra-agent-linux-arm64 \
+            overra-agent-darwin-amd64 \
+            overra-agent-darwin-arm64 \
+            overra-agent-windows-amd64.exe \
+            SHA256SUMS.txt \
+          || gh release upload "$TAG" \
+            --repo "$GITHUB_REPOSITORY" --clobber \
+            overra-agent-linux-amd64 \
+            overra-agent-linux-arm64 \
+            overra-agent-darwin-amd64 \
+            overra-agent-darwin-arm64 \
+            overra-agent-windows-amd64.exe \
+            SHA256SUMS.txt
