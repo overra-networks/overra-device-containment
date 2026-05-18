@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+}
+
+/*
+ * Targeted reset.
+ * Universal `padding: 0; margin: 0;` was previously applied via `*`, but Tailwind v4
+ * emits its utilities inside `@layer utilities`, and unlayered styles win over any
+ * layer regardless of specificity — so the universal reset silently killed every
+ * `p-*`, `m-*`, `gap-*` utility in the codebase (visible as labels/headers crashing
+ * into card borders). Reset only the elements that traditionally need it.
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+h1, h2, h3, h4, h5, h6,
+p,
+ul, ol,
+figure,
+blockquote {
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background: #F5F5F5;
+  color: #0E1C29;
+  font-family: var(--font-sans, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #EBEBEB;
+}
+::-webkit-scrollbar-thumb {
+  background: #C8D4DC;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A0B0BC;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset;
+  -webkit-text-fill-color: #0E1C29;
+  caret-color: #0E1C29;
+}

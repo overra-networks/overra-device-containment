@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Plan {
+  free
+  pro
+  enterprise
+}
+
+enum DeviceStatus {
+  normal
+  contained
+  offline
+  pending
+}
+
+enum Platform {
+  windows
+  macos
+  linux
+}
+
+enum AuditResult {
+  success
+  executed
+  failed
+  pending
+}
+
+model User {
+  id                String   @id @default(uuid())
+  email             String   @unique
+  passwordHash      String   @map("password_hash")
+  name              String
+  walletAddress     String?  @map("wallet_address")
+  plan              Plan     @default(free)
+  passwordChangedAt DateTime @default(now()) @map("password_changed_at")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  devices         Device[]
+  auditLogs       AuditLog[]
+  agentDownloads  AgentDownload[]
+  resetTokens     PasswordResetToken[]
+
+  @@map("users")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  ipAddress String?   @map("ip_address")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
+model Device {
+  id                String       @id @default(uuid())
+  userId            String       @map("user_id")
+  name              String
+  hostname          String
+  os                String
+  agentVersion      String       @default("v0.1") @map("agent_version")
+  status            DeviceStatus @default(normal)
+  lastHeartbeat     DateTime?    @map("last_heartbeat")
+  agentTokenHash    String?      @map("agent_token_hash")
+  walletAuthority   String?      @map("wallet_authority")
+  lastAuthorization DateTime?    @map("last_authorization")
+
+  // Containment state (inline JSON stored as separate columns)
+  networkDisabled    Boolean @default(false) @map("network_disabled")
+  sessionsRevoked    Boolean @default(false) @map("sessions_revoked")
+  extensionsFrozen   Boolean @default(false) @map("extensions_frozen")
+  screenLocked       Boolean @default(false) @map("screen_locked")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  containmentConfig  ContainmentConfig?
+  auditLogs          AuditLog[]
+
+  @@map("devices")
+}
+
+model ContainmentConfig {
+  id               String  @id @default(uuid())
+  deviceId         String  @unique @map("device_id")
+  disableNetwork   Boolean @default(true) @map("disable_network")
+  revokeSessions   Boolean @default(true) @map("revoke_sessions")
+  freezeExtensions Boolean @default(true) @map("freeze_extensions")
+  lockScreen       Boolean @default(true) @map("lock_screen")
+
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@map("containment_configs")
+}
+
+model AuditLog {
+  id        String      @id @default(uuid())
+  deviceId  String      @map("device_id")
+  userId    String      @map("user_id")
+  timestamp DateTime    @default(now())
+  event     String
+  result    AuditResult @default(pending)
+  signature String?
+  ipAddress String?     @map("ip_address")
+  metadata  Json?
+
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([timestamp])
+  @@index([deviceId])
+  @@map("audit_logs")
+}
+
+model AgentDownload {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  platform      Platform
+  version       String   @default("v0.1")
+  downloadToken String   @unique @map("download_token")
+  activated     Boolean  @default(false)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("agent_downloads")
+}
