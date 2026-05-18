@@ -1,0 +1,44 @@
+[Unit]
+Description=Overra Containment Portal (Next.js)
+Documentation=https://github.com/overra-networks/overra-device-containment
+After=network-online.target postgresql.service
+Wants=network-online.target
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=overra
+Group=overra
+WorkingDirectory=/opt/overra/app
+
+# All secrets live here. File must be chmod 600, owned by the overra user.
+# See deploy/.env.production.example for the required keys.
+EnvironmentFile=/opt/overra/app/.env.production
+Environment=NODE_ENV=production
+
+# Bind to loopback only — nginx terminates TLS and proxies to this.
+# The public firewall must NOT expose port 3000.
+ExecStart=/opt/overra/app/node_modules/.bin/next start -H 127.0.0.1 -p 3000
+
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+# --- Hardening ---
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+# next writes its build/runtime cache here; nothing else needs write access.
+ReadWritePaths=/opt/overra/app/.next
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

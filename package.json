@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "db:migrate": "DATABASE_URL=$DATABASE_URL prisma migrate dev",
+    "db:deploy": "DATABASE_URL=$DATABASE_URL prisma migrate deploy",
     "db:generate": "DATABASE_URL=$DATABASE_URL prisma generate",
     "db:push": "DATABASE_URL=$DATABASE_URL prisma db push",
     "db:studio": "DATABASE_URL=$DATABASE_URL prisma studio",
