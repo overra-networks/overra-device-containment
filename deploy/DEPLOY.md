@@ -4,17 +4,14 @@ Target: Ubuntu 22.04 / 24.04. Stack: Next.js 16 (`next start`) behind nginx
 (TLS via Let's Encrypt), PostgreSQL on the same box, run by systemd.
 
 > **Read this first — known gaps this deploy does NOT fix.**
-> Your prod-readiness backlog has two Tier-1 items that go live the moment
-> agents talk to this box:
-> 1. **Plain-HTTP agent code path.** `overra-agent/client.go` only *warns*
->    on non-localhost HTTP. This runbook forces TLS at the portal, but the
->    agent will still happily talk HTTP if pointed at one. Fix `client.go`
->    to hard-fail on non-`localhost` HTTP **before** distributing agents.
-> 2. **Duplicate device rows on reinstall.** Unaffected by deployment.
->    Operators will see dupes until `/api/agent/authenticate` upserts by
->    `userId+hostname+os`.
-> Deploying is fine for staging / first pilots. Do not onboard external
-> paying customers until #1 is closed.
+> Plain-HTTP token exposure is now closed in code: `client.go` hard-fails
+> unless APIBase is HTTPS or a genuine loopback host (no string-prefix
+> bypass). One Tier-1 item remains and is unaffected by deployment:
+> - **Duplicate device rows on reinstall.** Operators will see dupes until
+>   `/api/agent/authenticate` upserts by `userId+hostname+os`.
+> Deploying is fine for staging / first pilots. The duplicate-device bug
+> is a UX/correctness wart, not a security hole — acceptable to ship while
+> it's open, but fix before scaling operator count.
 
 Throughout, replace `portal.example.com` with your real domain.
 
@@ -194,5 +191,6 @@ A local dump on the same VPS is not a real backup. Ship these off-box
 - [ ] DB role is not a superuser; 5432 not publicly reachable
 - [ ] `JWT_SECRET` / `NEXTAUTH_SECRET` are freshly generated, not the dev values
 - [ ] Port 3000 not exposed (`sudo ss -tlnp | grep 3000` → 127.0.0.1 only)
-- [ ] `overra-agent/client.go` hard-fails on non-localhost HTTP **(Tier-1 #1)**
+- [x] `overra-agent/client.go` hard-fails on non-loopback HTTP (subdomain/userinfo bypass closed)
+- [ ] Agents are rebuilt + redistributed from the commit containing the client.go fix
 - [ ] Off-box backups verified by a test restore

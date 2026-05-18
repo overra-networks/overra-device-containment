@@ -31,10 +31,20 @@ func TestNewClient_RequiresHTTPSForNonLocalhost(t *testing.T) {
 		wantError bool
 	}{
 		{"https remote OK", "https://overra.example.com/api", false},
+		{"https uppercase scheme OK", "HTTPS://overra.example.com/api", false},
 		{"http localhost OK", "http://localhost:3000/api", false},
 		{"http 127.0.0.1 OK", "http://127.0.0.1:3000/api", false},
+		{"http 127.x loopback OK", "http://127.5.6.7:3000/api", false},
+		{"http ipv6 loopback OK", "http://[::1]:3000/api", false},
 		{"http remote rejected", "http://overra.example.com/api", true},
 		{"http with localhost in path is rejected", "http://example.com/localhost/api", true},
+		// Prefix-match bypasses: these all start with "http://localhost"
+		// or "http://127.0.0.1" but resolve to attacker-controlled hosts.
+		{"localhost subdomain bypass rejected", "http://localhost.attacker.com/api", true},
+		{"127.0.0.1 subdomain bypass rejected", "http://127.0.0.1.attacker.com/api", true},
+		{"localhost userinfo masks real host rejected", "http://localhost@evil.com/api", true},
+		{"non-http scheme rejected", "ftp://localhost/api", true},
+		{"garbage rejected", "not-a-url", true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

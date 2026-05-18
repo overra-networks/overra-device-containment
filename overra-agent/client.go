@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -23,20 +25,16 @@ type Client struct {
 }
 
 // NewClient creates a Client with sane timeouts and TLS verification enabled.
-// Returns an error if APIBase does not use HTTPS — the agent JWT is sent as a
-// Bearer token on every request and must not be transmitted in plaintext.
-// Exception: http://localhost and http://127.0.0.1 are permitted for local dev.
+// It hard-fails unless APIBase is HTTPS, or HTTP pointed at a genuine
+// loopback host (localhost, 127.0.0.0/8, ::1) for local development. The
+// agent JWT is a Bearer token on every request and must never cross the
+// network in plaintext.
 func NewClient(cfg *Config) (*Client, error) {
-	if !strings.HasPrefix(cfg.APIBase, "https://") {
-		isLocal := strings.HasPrefix(cfg.APIBase, "http://localhost") ||
-			strings.HasPrefix(cfg.APIBase, "http://127.0.0.1")
-		if !isLocal {
-			return nil, fmt.Errorf(
-				"APIBase must use HTTPS (got %q): the agent token would be exposed in plaintext",
-				cfg.APIBase,
-			)
-		}
-		log.Printf("[overra-agent] WARNING: plain HTTP in use (%s) — switch to HTTPS in production", cfg.APIBase)
+	if err := validateAPIBase(cfg.APIBase); err != nil {
+		return nil, err
+	}
+	if strings.HasPrefix(strings.ToLower(cfg.APIBase), "http://") {
+		log.Printf("[overra-agent] WARNING: plain HTTP in use (%s) — permitted only for local development", cfg.APIBase)
 	}
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -51,6 +49,45 @@ func NewClient(cfg *Config) (*Client, error) {
 			Timeout:   20 * time.Second,
 		},
 	}, nil
+}
+
+// validateAPIBase enforces HTTPS for the portal connection. Plain HTTP is
+// tolerated ONLY when the host is a real loopback address. String-prefix
+// checks like strings.HasPrefix(url, "http://localhost") are deliberately
+// avoided: "http://localhost.attacker.com" would slip past them and leak
+// the Bearer token to an attacker-controlled host.
+func validateAPIBase(apiBase string) error {
+	u, err := url.Parse(apiBase)
+	if err != nil {
+		return fmt.Errorf("APIBase is not a valid URL (%q): %w", apiBase, err)
+	}
+	switch strings.ToLower(u.Scheme) {
+	case "https":
+		return nil
+	case "http":
+		if isLoopbackHost(u.Hostname()) {
+			return nil
+		}
+		return fmt.Errorf(
+			"APIBase must use HTTPS (got %q): the agent token would be exposed in plaintext",
+			apiBase,
+		)
+	default:
+		return fmt.Errorf("APIBase must be http or https (got scheme %q in %q)", u.Scheme, apiBase)
+	}
+}
+
+// isLoopbackHost reports whether host is exactly "localhost" or an IP in
+// the loopback range (127.0.0.0/8, ::1). host must already have any port
+// stripped — pass url.URL.Hostname(), which also unwraps IPv6 brackets.
+func isLoopbackHost(host string) bool {
+	if strings.EqualFold(host, "localhost") {
+		return true
+	}
+	if ip := net.ParseIP(host); ip != nil {
+		return ip.IsLoopback()
+	}
+	return false
 }
 
 // HeartbeatResponse mirrors the portal's heartbeat JSON response.

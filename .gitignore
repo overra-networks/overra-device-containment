@@ -50,10 +50,9 @@ next-env.d.ts
 
 /src/generated/prisma
 
-# compiled agent binaries (ship via GitHub Releases, not source)
+# Local dev builds — the production cross-compiled binaries in /agents/ are committed.
 /overra-agent/agent
 /overra-agent/agent.exe
-/agents/
 
 # design-asset source files (large; keep out of source control)
 /ASSETS+LOGO/
