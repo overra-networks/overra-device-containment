@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { AdminDeviceControl } from "@/components/admin/device-control";
+import { AdminDeviceDangerZone } from "@/components/admin/admin-device-danger-zone";
 
 export const dynamic = "force-dynamic";
 
@@ -83,6 +84,12 @@ export default async function AdminDeviceDetailPage({ params }: Props) {
             lockScreen: true,
           },
         }}
+      />
+
+      <AdminDeviceDangerZone
+        deviceId={device.id}
+        deviceHostname={device.hostname}
+        ownerEmail={device.user.email}
       />
     </div>
   );
