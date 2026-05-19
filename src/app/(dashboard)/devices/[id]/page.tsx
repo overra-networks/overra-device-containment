@@ -16,8 +16,8 @@ export default async function DevicePage({ params }: Params) {
 
   const { id } = await params;
 
-  const device = await prisma.device.findUnique({
-    where: { id },
+  const device = await prisma.device.findFirst({
+    where: { id, deletedAt: null },
     include: {
       containmentConfig: true,
       auditLogs: {

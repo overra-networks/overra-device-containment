@@ -21,7 +21,7 @@ export default async function DevicesPage({ searchParams }: Props) {
   const currentPage = Math.max(1, parseInt(page, 10));
 
   const allDevices = await prisma.device.findMany({
-    where: { userId: session.user.id },
+    where: { userId: session.user.id, deletedAt: null },
     orderBy: { createdAt: "desc" },
   });
 

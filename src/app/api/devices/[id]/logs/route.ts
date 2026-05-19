@@ -15,7 +15,9 @@ export async function GET(
 
     const { id } = await params;
 
-    const device = await prisma.device.findUnique({ where: { id } });
+    const device = await prisma.device.findFirst({
+      where: { id, deletedAt: null },
+    });
     if (!device || device.userId !== session.user.id) {
       return NextResponse.json({ error: "Device not found" }, { status: 404 });
     }

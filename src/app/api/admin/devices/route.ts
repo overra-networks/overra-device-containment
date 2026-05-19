@@ -16,7 +16,10 @@ export async function GET(req: NextRequest) {
     const status = url.searchParams.get("status");
     const skip = (page - 1) * limit;
 
-    const where = status ? { status: status as never } : {};
+    const where = {
+      deletedAt: null,
+      ...(status ? { status: status as never } : {}),
+    };
 
     const [devices, total] = await Promise.all([
       prisma.device.findMany({

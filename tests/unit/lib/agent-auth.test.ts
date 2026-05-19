@@ -7,7 +7,7 @@ const findUniqueMock = vi.fn();
 vi.mock("@/lib/prisma", () => ({
   default: {
     device: {
-      findUnique: (...args: unknown[]) => findUniqueMock(...args),
+      findFirst: (...args: unknown[]) => findUniqueMock(...args),
     },
   },
 }));
@@ -80,7 +80,7 @@ describe("verifyAgentToken", () => {
     const result = await verifyAgentToken(makeReq({ authorization: `Bearer ${token}` }));
     expect(result).toEqual({ device_id: "d1", user_id: "u1" });
     expect(findUniqueMock).toHaveBeenCalledWith({
-      where: { id: "d1" },
+      where: { id: "d1", deletedAt: null },
       select: { agentTokenHash: true, userId: true },
     });
   });

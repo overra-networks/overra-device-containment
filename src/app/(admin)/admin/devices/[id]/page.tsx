@@ -12,8 +12,8 @@ interface Props {
 export default async function AdminDeviceDetailPage({ params }: Props) {
   const { id } = await params;
 
-  const device = await prisma.device.findUnique({
-    where: { id },
+  const device = await prisma.device.findFirst({
+    where: { id, deletedAt: null },
     select: {
       id: true,
       name: true,

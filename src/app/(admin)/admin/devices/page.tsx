@@ -12,7 +12,10 @@ const PAGE_SIZE = 25;
 export default async function AdminDevicesPage({ searchParams }: Props) {
   const { page = "1", status } = await searchParams;
   const currentPage = Math.max(1, parseInt(page, 10));
-  const where = status ? { status: status as never } : {};
+  const where = {
+    deletedAt: null,
+    ...(status ? { status: status as never } : {}),
+  };
 
   const [devices, total] = await Promise.all([
     prisma.device.findMany({
