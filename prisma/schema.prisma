@@ -13,6 +13,11 @@ enum Plan {
   enterprise
 }
 
+enum Role {
+  user
+  admin
+}
+
 enum DeviceStatus {
   normal
   contained
@@ -40,6 +45,7 @@ model User {
   name              String
   walletAddress     String?  @map("wallet_address")
   plan              Plan     @default(free)
+  role              Role     @default(user)
   passwordChangedAt DateTime @default(now()) @map("password_changed_at")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
