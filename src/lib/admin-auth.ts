@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 
 /**
  * Thrown when an admin-only resource is accessed without sufficient
@@ -38,12 +39,25 @@ export function assertAdmin(
 }
 
 /**
- * Route-level chokepoint. Resolves the NextAuth session server-side and
- * asserts admin. Every /api/admin/* handler MUST call this before doing
- * anything else. Returns the (admin) session for convenience.
+ * Route-level chokepoint. Resolves the NextAuth session server-side,
+ * asserts the token claims admin, then RE-VERIFIES the role against the
+ * database. The DB check is authoritative: it closes the stale-token
+ * window where a demoted/deleted admin's still-valid 7-day JWT would
+ * otherwise retain admin access until expiry. Every /api/admin/* handler
+ * MUST call this before anything else. Returns the (admin) session.
  */
 export async function requireAdmin() {
-  const session = await getServerSession(authOptions);
-  assertAdmin(session as SessionLike);
-  return session!;
+  const session = (await getServerSession(authOptions)) as SessionLike;
+  assertAdmin(session);
+
+  // Token says admin — confirm it's still true in the DB right now.
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+  if (dbUser?.role !== "admin") {
+    throw new AdminAuthError(403, "Forbidden");
+  }
+
+  return session;
 }
