@@ -9,6 +9,7 @@ declare module "next-auth" {
       name: string;
       walletAddress: string | null;
       plan: string;
+      role: string;
     };
   }
   interface User {
@@ -17,6 +18,7 @@ declare module "next-auth" {
     name: string;
     walletAddress: string | null;
     plan: string;
+    role: string;
     passwordChangedAt: number;
   }
 }
@@ -26,6 +28,7 @@ declare module "next-auth/jwt" {
     id: string;
     walletAddress: string | null;
     plan: string;
+    role: string;
     passwordChangedAt: number;
   }
 }

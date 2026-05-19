@@ -62,6 +62,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           walletAddress: user.walletAddress,
           plan: user.plan,
+          role: user.role,
           passwordChangedAt: user.passwordChangedAt.getTime(),
         };
       },
@@ -75,6 +76,7 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.walletAddress = (user as any).walletAddress;
         token.plan = (user as any).plan;
+        token.role = (user as any).role;
         token.passwordChangedAt = (user as any).passwordChangedAt;
         return token;
       }
@@ -113,6 +115,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).id = token.id as string;
         (session.user as any).walletAddress = token.walletAddress as string | null;
         (session.user as any).plan = token.plan as string;
+        (session.user as any).role = token.role as string;
       }
       return session;
     },
