@@ -19,6 +19,7 @@ export default async function AdminUserDetailPage({ params }: Props) {
       name: true,
       plan: true,
       role: true,
+      lockedAt: true,
       walletAddress: true,
       createdAt: true,
       devices: {
@@ -43,6 +44,7 @@ export default async function AdminUserDetailPage({ params }: Props) {
         name: user.name,
         plan: user.plan,
         role: user.role,
+        lockedAt: user.lockedAt ? user.lockedAt.toISOString() : null,
         walletAddress: user.walletAddress,
         createdAt: user.createdAt.toISOString(),
         devices: user.devices.map((d) => ({

@@ -10,6 +10,7 @@ interface AdminUserRow {
   name: string;
   plan: string;
   role: string;
+  lockedAt: string | null;
   createdAt: string;
   deviceCount: number;
 }
@@ -111,7 +112,25 @@ export function AdminUsersTable({
           )}
           {users.map((u) => (
             <tr key={u.id}>
-              <td style={cell}>{u.email}</td>
+              <td style={cell}>
+                {u.email}
+                {u.lockedAt && (
+                  <span
+                    style={{
+                      marginLeft: "8px",
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      padding: "2px 6px",
+                      borderRadius: "999px",
+                      color: "#FFFFFF",
+                      background: "#B3122E",
+                      letterSpacing: "0.04em",
+                    }}
+                  >
+                    LOCKED
+                  </span>
+                )}
+              </td>
               <td style={cell}>{u.name}</td>
               <td style={cell}>{u.plan}</td>
               <td style={cell}>

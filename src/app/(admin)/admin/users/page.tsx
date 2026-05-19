@@ -37,6 +37,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
         name: true,
         plan: true,
         role: true,
+        lockedAt: true,
         createdAt: true,
         _count: { select: { devices: true } },
       },
@@ -53,6 +54,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
         users={users.map((u) => ({
           ...u,
           createdAt: u.createdAt.toISOString(),
+          lockedAt: u.lockedAt ? u.lockedAt.toISOString() : null,
           deviceCount: u._count.devices,
         }))}
         total={total}
