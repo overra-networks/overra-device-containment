@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { DeviceDetailView } from "@/components/device/device-detail-view";
+import { DeviceDangerZone } from "@/components/device/device-danger-zone";
 
 export const dynamic = "force-dynamic";
 
@@ -31,5 +32,10 @@ export default async function DevicePage({ params }: Params) {
     notFound();
   }
 
-  return <DeviceDetailView device={device as any} logs={device.auditLogs as any} />;
+  return (
+    <>
+      <DeviceDetailView device={device as any} logs={device.auditLogs as any} />
+      <DeviceDangerZone deviceId={device.id} deviceHostname={device.hostname} />
+    </>
+  );
 }
