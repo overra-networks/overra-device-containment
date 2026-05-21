@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { Shield, Wallet, Loader2, CheckCircle2, Link2Off } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
+import { Shield, Wallet, Loader2, CheckCircle2, Link2Off, KeyRound } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,10 @@ export default function SettingsPage() {
   const [linking, setLinking] = useState(false);
   const [unlinking, setUnlinking] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     setWalletAddress((session?.user as any)?.walletAddress ?? null);
@@ -65,6 +69,67 @@ export default function SettingsPage() {
       }
     } finally {
       setLinking(false);
+    }
+  }
+
+  async function changePassword(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Passwords do not match", variant: "error" });
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast({
+        title: "Password too short",
+        description: "Must be at least 8 characters.",
+        variant: "error",
+      });
+      return;
+    }
+    if (newPassword === currentPassword) {
+      toast({
+        title: "New password must be different",
+        description: "Choose a password you have not used here.",
+        variant: "error",
+      });
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = (await res.json()) as { message?: string; error?: string };
+
+      if (!res.ok) {
+        toast({
+          title: "Could not change password",
+          description: data.error ?? "Please try again.",
+          variant: "error",
+        });
+        return;
+      }
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      toast({
+        title: "Password updated",
+        description: "Sign in again with your new password.",
+        variant: "success",
+      });
+      // The server bumped passwordChangedAt, which invalidates this JWT on
+      // its next refresh. Sign out now for a clean redirect rather than
+      // letting the user hit a stale-session 401 later.
+      await signOut({ callbackUrl: "/login" });
+    } catch {
+      toast({ title: "Network error", variant: "error" });
+    } finally {
+      setChangingPassword(false);
     }
   }
 
@@ -135,6 +200,99 @@ export default function SettingsPage() {
               </span>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Change Password */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Change Password</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form
+            onSubmit={changePassword}
+            style={{ display: "flex", flexDirection: "column", gap: "14px" }}
+          >
+            <p style={{ fontSize: "13px", color: "#5A7080", lineHeight: 1.6 }}>
+              You will be signed out after updating your password and need to
+              sign in again with the new one.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <Label htmlFor="current-password">Current password</Label>
+              <Input
+                id="current-password"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                placeholder="••••••••••••"
+              />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <Label htmlFor="new-password">New password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                placeholder="At least 8 characters"
+              />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <Label htmlFor="confirm-password">Confirm new password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                placeholder="Repeat new password"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={changingPassword}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                height: "36px",
+                padding: "0 16px",
+                borderRadius: "6px",
+                border: "1px solid #DDE3EA",
+                background: "#0E1C29",
+                color: "#FFFFFF",
+                fontSize: "13px",
+                fontWeight: 500,
+                cursor: changingPassword ? "not-allowed" : "pointer",
+                opacity: changingPassword ? 0.7 : 1,
+                transition: "all 0.15s",
+                alignSelf: "flex-start",
+              }}
+            >
+              {changingPassword ? (
+                <>
+                  <Loader2
+                    style={{ width: "14px", height: "14px" }}
+                    className="animate-spin"
+                  />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <KeyRound style={{ width: "14px", height: "14px" }} />
+                  Update password
+                </>
+              )}
+            </button>
+          </form>
         </CardContent>
       </Card>
 
