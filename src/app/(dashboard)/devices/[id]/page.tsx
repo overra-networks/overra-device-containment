@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { DeviceDetailView } from "@/components/device/device-detail-view";
+import { DeviceDangerZone } from "@/components/device/device-danger-zone";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +17,8 @@ export default async function DevicePage({ params }: Params) {
 
   const { id } = await params;
 
-  const device = await prisma.device.findUnique({
-    where: { id },
+  const device = await prisma.device.findFirst({
+    where: { id, deletedAt: null },
     include: {
       containmentConfig: true,
       auditLogs: {
@@ -31,5 +32,10 @@ export default async function DevicePage({ params }: Params) {
     notFound();
   }
 
-  return <DeviceDetailView device={device as any} logs={device.auditLogs as any} />;
+  return (
+    <>
+      <DeviceDetailView device={device as any} logs={device.auditLogs as any} />
+      <DeviceDangerZone deviceId={device.id} deviceHostname={device.hostname} />
+    </>
+  );
 }

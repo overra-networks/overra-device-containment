@@ -21,8 +21,8 @@ export default async function OverviewPage({ searchParams }: Props) {
   // If a device ID is provided, verify it belongs to the user
   let device = null;
   if (deviceId) {
-    device = await prisma.device.findUnique({
-      where: { id: deviceId },
+    device = await prisma.device.findFirst({
+      where: { id: deviceId, deletedAt: null },
       include: {
         auditLogs: { orderBy: { timestamp: "desc" }, take: 5 },
       },
@@ -31,7 +31,7 @@ export default async function OverviewPage({ searchParams }: Props) {
   } else {
     // Default to the most recently created device
     const first = await prisma.device.findFirst({
-      where: { userId: session.user.id },
+      where: { userId: session.user.id, deletedAt: null },
       orderBy: { createdAt: "desc" },
       include: {
         auditLogs: { orderBy: { timestamp: "desc" }, take: 5 },

@@ -56,6 +56,14 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid email or password");
         }
 
+        // Locked accounts are rejected with the SAME generic error as
+        // bad credentials — never leak the locked state to the login
+        // form (no account-status enumeration). Admins manage the
+        // locked flag via /api/admin/users/[id] PATCH.
+        if (user.lockedAt) {
+          throw new Error("Invalid email or password");
+        }
+
         return {
           id: user.id,
           email: user.email,

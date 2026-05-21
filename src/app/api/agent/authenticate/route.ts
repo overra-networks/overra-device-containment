@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     // two concurrent requests both see no existing device and both try to create one.
     const device = await prisma.$transaction(async (tx) => {
       const existing = await tx.device.findFirst({
-        where: { userId: download.userId, hostname },
+        where: { userId: download.userId, hostname, deletedAt: null },
       });
 
       if (existing) {

@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const device = await prisma.device.findUnique({
-      where: { id: payload.device_id },
+    const device = await prisma.device.findFirst({
+      where: { id: payload.device_id, deletedAt: null },
     });
     if (!device) {
       return NextResponse.json({ error: "Device not found" }, { status: 404 });

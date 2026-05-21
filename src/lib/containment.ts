@@ -71,8 +71,8 @@ interface ActorOptions {
 }
 
 async function loadDevice(deviceId: string, requireOwnerUserId?: string) {
-  const device = await prisma.device.findUnique({
-    where: { id: deviceId },
+  const device = await prisma.device.findFirst({
+    where: { id: deviceId, deletedAt: null },
     include: { containmentConfig: true },
   });
   if (

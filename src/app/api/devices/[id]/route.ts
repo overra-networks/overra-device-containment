@@ -16,8 +16,8 @@ export async function GET(
 
     const { id } = await params;
 
-    const device = await prisma.device.findUnique({
-      where: { id },
+    const device = await prisma.device.findFirst({
+      where: { id, deletedAt: null },
       include: {
         containmentConfig: true,
         auditLogs: {
@@ -51,12 +51,20 @@ export async function DELETE(
 
     const { id } = await params;
 
-    const device = await prisma.device.findUnique({ where: { id } });
+    const device = await prisma.device.findFirst({
+      where: { id, deletedAt: null },
+    });
     if (!device || device.userId !== session.user.id) {
       return NextResponse.json({ error: "Device not found" }, { status: 404 });
     }
 
-    await prisma.device.delete({ where: { id } });
+    // Soft-delete: preserve audit_logs / containment_configs. Null the
+    // agentTokenHash so the installed agent fails its next heartbeat
+    // (matches the documented per-device revocation mechanism).
+    await prisma.device.update({
+      where: { id },
+      data: { deletedAt: new Date(), agentTokenHash: null },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

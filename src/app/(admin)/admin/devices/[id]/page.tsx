@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { AdminDeviceControl } from "@/components/admin/device-control";
+import { AdminDeviceDangerZone } from "@/components/admin/admin-device-danger-zone";
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +13,8 @@ interface Props {
 export default async function AdminDeviceDetailPage({ params }: Props) {
   const { id } = await params;
 
-  const device = await prisma.device.findUnique({
-    where: { id },
+  const device = await prisma.device.findFirst({
+    where: { id, deletedAt: null },
     select: {
       id: true,
       name: true,
@@ -83,6 +84,12 @@ export default async function AdminDeviceDetailPage({ params }: Props) {
             lockScreen: true,
           },
         }}
+      />
+
+      <AdminDeviceDangerZone
+        deviceId={device.id}
+        deviceHostname={device.hostname}
+        ownerEmail={device.user.email}
       />
     </div>
   );

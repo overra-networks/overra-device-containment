@@ -58,6 +58,7 @@ export async function PATCH(
 
     const body = await req.json().catch(() => ({}));
     const data: { name?: string; plan?: string; role?: string } = {};
+    const lockChange = typeof body.locked === "boolean" ? body.locked : null;
 
     if (typeof body.name === "string" && body.name.trim()) {
       data.name = body.name.trim();
@@ -81,14 +82,50 @@ export async function PATCH(
       }
       data.role = body.role;
     }
+    if (lockChange === true && id === session.user.id) {
+      return NextResponse.json(
+        { error: "You cannot lock your own account" },
+        { status: 400 }
+      );
+    }
 
-    if (Object.keys(data).length === 0) {
+    if (Object.keys(data).length === 0 && lockChange === null) {
       return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Handle lock/unlock as a dedicated mutation + audit row. Bumping
+    // passwordChangedAt is the documented mechanism for invalidating all
+    // outstanding JWTs for this user (jwt callback DB-checks it).
+    if (lockChange !== null) {
+      await prisma.user.update({
+        where: { id },
+        data: {
+          lockedAt: lockChange ? new Date() : null,
+          passwordChangedAt: new Date(),
+        },
+      });
+      await recordAdminAction({
+        adminUserId: session.user.id,
+        action: lockChange ? "admin.user.lock" : "admin.user.unlock",
+        targetType: "user",
+        targetId: id,
+        metadata: { email: existing.email },
+        ipAddress: clientIp(req),
+      });
+    }
+
+    // No other fields → return early with the post-lock state.
+    if (Object.keys(data).length === 0) {
+      const user = await prisma.user.findUniqueOrThrow({
+        where: { id },
+        select: { id: true, email: true, name: true, plan: true, role: true },
+      });
+      return NextResponse.json({ user });
     }
 
     const user = await prisma.user.update({
