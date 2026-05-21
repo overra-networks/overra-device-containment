@@ -113,13 +113,57 @@ input:-webkit-autofill:focus {
 }
 
 .table-scroll {
+  position: relative;
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
+/*
+ * Right-edge fade as a scroll affordance for horizontally-scrollable tables.
+ * Pure visual cue — does not block clicks (pointer-events: none).
+ */
+.table-scroll::after {
+  content: "";
+  position: sticky;
+  top: 0;
+  right: 0;
+  float: right;
+  width: 32px;
+  height: 100%;
+  margin-left: -32px;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.9) 100%
+  );
+}
+
+.app-sidebar-backdrop {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.app-sidebar-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 @media (max-width: 768px) {
+  /*
+   * iOS Safari auto-zooms when a focused input has font-size < 16px.
+   * Bump form controls up at the mobile breakpoint to prevent the
+   * jarring zoom-and-snap behavior on input focus.
+   */
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
   .app-sidebar {
+    width: min(280px, 85vw);
     transform: translateX(-100%);
     box-shadow: none;
   }
@@ -134,26 +178,60 @@ input:-webkit-autofill:focus {
     background: rgba(14, 28, 41, 0.45);
     z-index: 39;
   }
+
+  /*
+   * Touch-target floor on every interactive element inside the drawer.
+   * 44px is the Apple HIG / WCAG 2.5.5 minimum. The existing visual
+   * styling stays; only the hit area grows.
+   */
+  .app-sidebar a,
+  .app-sidebar button {
+    min-height: 44px;
+  }
+
   .app-main {
     margin-left: 0;
   }
   .app-main-inner {
     padding: 16px;
   }
+
+  /*
+   * Sticky hamburger so navigation is always reachable without scrolling
+   * back to the top — important on long pages like /audit-logs and
+   * /devices/[id].
+   */
   .mobile-nav-toggle {
+    position: sticky;
+    top: 8px;
+    z-index: 30;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     border: 1px solid #DDE3EA;
-    background: #FFFFFF;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: saturate(140%) blur(8px);
+    -webkit-backdrop-filter: saturate(140%) blur(8px);
     color: #0E1C29;
     cursor: pointer;
     margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(14, 28, 41, 0.06);
   }
   .mobile-nav-toggle:active {
-    background: #F5F5F5;
+    background: rgba(245, 245, 245, 0.95);
+    transform: scale(0.97);
+    transition: transform 0.08s ease;
+  }
+
+  /*
+   * Hide the right-edge fade on tables when scrolled all the way to the
+   * end. Browsers without scroll-driven animations gracefully ignore.
+   */
+  .table-scroll::after {
+    width: 24px;
+    margin-left: -24px;
   }
 }
