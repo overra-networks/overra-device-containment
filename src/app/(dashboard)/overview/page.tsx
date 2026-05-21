@@ -150,8 +150,8 @@ export default async function OverviewPage({ searchParams }: Props) {
             </div>
           </div>
 
-          {/* Two-column: Wallet Authority + Recent Activity */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: "16px" }}>
+          {/* Two-column: Wallet Authority + Recent Activity (stacks on mobile via .grid-stack-mobile) */}
+          <div className="grid-stack-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: "16px" }}>
             {/* Wallet Authority */}
             <div
               style={{
