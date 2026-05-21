@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { SidebarProvider } from "@/components/layout/sidebar-context";
+import { MobileNavToggle } from "@/components/layout/mobile-nav-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -28,28 +30,29 @@ export default async function AdminLayout({
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#F5F5F5" }}>
-      <AdminNav />
-      <main style={{ flex: 1, minWidth: 0, marginLeft: "220px" }}>
-        <div
-          style={{
-            background: "#FFF0F2",
-            borderBottom: "1px solid #FFC2CC",
-            color: "#B3122E",
-            fontSize: "12px",
-            fontWeight: 600,
-            padding: "8px 32px",
-            letterSpacing: "0.02em",
-          }}
-        >
-          ADMIN MODE — actions here affect all users and are audited.
-        </div>
-        <div
-          style={{ maxWidth: "1280px", margin: "0 auto", padding: "32px" }}
-        >
-          {children}
-        </div>
-      </main>
-    </div>
+    <SidebarProvider>
+      <div className="app-shell">
+        <AdminNav />
+        <main className="app-main">
+          <div
+            style={{
+              background: "#FFF0F2",
+              borderBottom: "1px solid #FFC2CC",
+              color: "#B3122E",
+              fontSize: "12px",
+              fontWeight: 600,
+              padding: "8px 16px",
+              letterSpacing: "0.02em",
+            }}
+          >
+            ADMIN MODE — actions here affect all users and are audited.
+          </div>
+          <div className="app-main-inner">
+            <MobileNavToggle />
+            {children}
+          </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 }

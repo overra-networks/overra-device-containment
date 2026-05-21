@@ -74,7 +74,7 @@ Overra is an **endpoint containment platform**. The portal (Next.js) lets securi
 
 Three event types: `device:status_update`, `log:new_entry`, `device:heartbeat`.
 
-> Note: `bullmq`, `ioredis`, and `socket.io` are listed in `package.json` but are **not used**. The project intentionally uses in-process SSE + direct PostgreSQL instead.
+> Note: this stack uses in-process SSE + direct PostgreSQL by design — no Redis, no BullMQ queue, no socket.io. If you find yourself reaching for those, reconsider; they were intentionally removed.
 
 ### Agent lifecycle
 1. Operator generates a one-time download token via `POST /api/downloads/generate`.

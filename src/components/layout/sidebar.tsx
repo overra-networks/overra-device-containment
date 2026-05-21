@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { LayoutDashboard, Shield, Key, ScrollText, Monitor, Settings, LogOut, FileText, Lock, ShieldCheck, Download, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, Shield, Key, ScrollText, Monitor, Settings, LogOut, FileText, Lock, ShieldCheck, Download, ShieldAlert, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { BrandMark } from "@/components/layout/brand-mark";
 import { SocialLinks } from "@/components/layout/social-links";
+import { useSidebar } from "@/components/layout/sidebar-context";
 
 const mainNav = [
   { href: "/overview", label: "Overview", icon: LayoutDashboard },
@@ -26,6 +27,7 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const deviceId = searchParams.get("device");
+  const { open, setOpen } = useSidebar();
 
   function navHref(base: string) {
     const needsDevice = ["/overview", "/containment", "/authority"].includes(base);
@@ -37,31 +39,61 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
     return pathname === href || pathname.startsWith(href + "/");
   }
 
+  function closeOnMobileNav() {
+    // Drawer auto-closes on link tap; harmless on desktop because the
+    // sidebar isn't a drawer there.
+    setOpen(false);
+  }
+
   return (
-    <aside
+    <>
+      <div
+        className={`app-sidebar-backdrop${open ? " is-open" : ""}`}
+        onClick={() => setOpen(false)}
+        aria-hidden
+      />
+      <aside
+      className={`app-sidebar${open ? " is-open" : ""}`}
       style={{
-        width: "220px",
-        minWidth: "220px",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        bottom: 0,
         display: "flex",
         flexDirection: "column",
         borderRight: "1px solid #DDE3EA",
         background: "#FFFFFF",
-        zIndex: 40,
       }}
     >
-      {/* Brand */}
+      {/* Brand + mobile-close */}
       <div
         style={{
           padding: "16px 18px 14px",
           borderBottom: "1px solid #DDE3EA",
           flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "8px",
         }}
       >
         <BrandMark variant="sidebar" />
+        <button
+          type="button"
+          aria-label="Close navigation"
+          onClick={() => setOpen(false)}
+          className="sidebar-close-btn"
+          style={{
+            display: open ? "inline-flex" : "none",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 32,
+            height: 32,
+            border: "1px solid #DDE3EA",
+            borderRadius: 6,
+            background: "transparent",
+            color: "#5A7080",
+            cursor: "pointer",
+          }}
+        >
+          <X style={{ width: 16, height: 16 }} />
+        </button>
       </div>
 
       {/* Nav */}
@@ -81,6 +113,7 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
             <Link
               key={href}
               href={navHref(href)}
+              onClick={closeOnMobileNav}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -106,6 +139,7 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
         {isAdmin && (
           <Link
             href="/admin"
+            onClick={closeOnMobileNav}
             style={{
               display: "flex",
               alignItems: "center",
@@ -162,6 +196,7 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
       <div style={{ padding: "4px 8px 0", flexShrink: 0, borderTop: "1px solid #DDE3EA" }}>
         <Link
           href="/settings"
+          onClick={closeOnMobileNav}
           style={{
             display: "flex",
             alignItems: "center",
@@ -222,5 +257,6 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
         <SocialLinks variant="sidebar" />
       </div>
     </aside>
+    </>
   );
 }

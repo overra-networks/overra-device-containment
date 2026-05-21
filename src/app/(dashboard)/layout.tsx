@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Sidebar } from "@/components/layout/sidebar";
+import { SidebarProvider } from "@/components/layout/sidebar-context";
+import { MobileNavToggle } from "@/components/layout/mobile-nav-toggle";
 
 export default async function DashboardLayout({
   children,
@@ -23,13 +25,16 @@ export default async function DashboardLayout({
   const isAdmin = dbUser?.role === "admin";
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#F5F5F5" }}>
-      <Sidebar isAdmin={isAdmin} />
-      <main style={{ flex: 1, minWidth: 0, marginLeft: "220px" }}>
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "32px 32px" }}>
-          {children}
-        </div>
-      </main>
-    </div>
+    <SidebarProvider>
+      <div className="app-shell">
+        <Sidebar isAdmin={isAdmin} />
+        <main className="app-main">
+          <div className="app-main-inner">
+            <MobileNavToggle />
+            {children}
+          </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 }

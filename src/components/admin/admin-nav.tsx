@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, Monitor, ScrollText, ArrowLeft, LogOut } from "lucide-react";
+import { Users, Monitor, ScrollText, ArrowLeft, LogOut, X } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { useSidebar } from "@/components/layout/sidebar-context";
 
 const nav = [
   { href: "/admin/users", label: "Users", icon: Users },
@@ -13,36 +14,66 @@ const nav = [
 
 export function AdminNav() {
   const pathname = usePathname();
+  const { open, setOpen } = useSidebar();
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
+  const closeOnNav = () => setOpen(false);
 
   return (
-    <aside
-      style={{
-        width: "220px",
-        minWidth: "220px",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        bottom: 0,
-        display: "flex",
-        flexDirection: "column",
-        borderRight: "1px solid #DDE3EA",
-        background: "#FFFFFF",
-        zIndex: 40,
-      }}
-    >
+    <>
+      <div
+        className={`app-sidebar-backdrop${open ? " is-open" : ""}`}
+        onClick={() => setOpen(false)}
+        aria-hidden
+      />
+      <aside
+        className={`app-sidebar${open ? " is-open" : ""}`}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          borderRight: "1px solid #DDE3EA",
+          background: "#FFFFFF",
+        }}
+      >
       <div
         style={{
           padding: "16px 18px",
           borderBottom: "1px solid #DDE3EA",
-          fontSize: "13px",
-          fontWeight: 700,
-          letterSpacing: "0.08em",
-          color: "#FF3355",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "8px",
         }}
       >
-        ADMIN CONSOLE
+        <span
+          style={{
+            fontSize: "13px",
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            color: "#FF3355",
+          }}
+        >
+          ADMIN CONSOLE
+        </span>
+        <button
+          type="button"
+          aria-label="Close navigation"
+          onClick={() => setOpen(false)}
+          style={{
+            display: open ? "inline-flex" : "none",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 32,
+            height: 32,
+            border: "1px solid #DDE3EA",
+            borderRadius: 6,
+            background: "transparent",
+            color: "#5A7080",
+            cursor: "pointer",
+          }}
+        >
+          <X style={{ width: 16, height: 16 }} />
+        </button>
       </div>
 
       <nav
@@ -60,6 +91,7 @@ export function AdminNav() {
             <Link
               key={href}
               href={href}
+              onClick={closeOnNav}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -86,6 +118,7 @@ export function AdminNav() {
 
         <Link
           href="/overview"
+          onClick={closeOnNav}
           style={{
             display: "flex",
             alignItems: "center",
@@ -127,5 +160,6 @@ export function AdminNav() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

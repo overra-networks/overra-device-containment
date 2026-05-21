@@ -150,8 +150,8 @@ export default async function OverviewPage({ searchParams }: Props) {
             </div>
           </div>
 
-          {/* Two-column: Wallet Authority + Recent Activity */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: "16px" }}>
+          {/* Two-column: Wallet Authority + Recent Activity (stacks on mobile via .grid-stack-mobile) */}
+          <div className="grid-stack-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: "16px" }}>
             {/* Wallet Authority */}
             <div
               style={{
@@ -196,6 +196,7 @@ export default async function OverviewPage({ searchParams }: Props) {
                   Recent Activity
                 </span>
               </div>
+              <div className="table-scroll">
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid #DDE3EA" }}>
@@ -240,6 +241,7 @@ export default async function OverviewPage({ searchParams }: Props) {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         </>
