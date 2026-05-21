@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import path from "node:path";
 
-config({ path: path.resolve(__dirname, "../.env.test"), override: true });
+config({ path: path.resolve(__dirname, "../.env.test"), override: true, quiet: true });
 
 if (!process.env.JWT_SECRET) process.env.JWT_SECRET = "test-jwt-secret-min-32-characters-long-xxxxxx";
 if (!process.env.NEXTAUTH_SECRET) process.env.NEXTAUTH_SECRET = "test-nextauth-secret-min-32-chars-xxxxxxxx";

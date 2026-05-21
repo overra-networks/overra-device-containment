@@ -4,7 +4,7 @@ import { Client } from "pg";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "node:crypto";
 
-config({ path: path.resolve(__dirname, "../../.env.test"), override: true });
+config({ path: path.resolve(__dirname, "../../.env.test"), override: true, quiet: true });
 
 export const E2E_TEST_USER = {
   email: "e2e@example.com",
