@@ -20,8 +20,8 @@ export default async function AuthorityPage({ searchParams }: Props) {
 
   let device = null;
   if (deviceId) {
-    device = await prisma.device.findUnique({
-      where: { id: deviceId },
+    device = await prisma.device.findFirst({
+      where: { id: deviceId, deletedAt: null },
       include: {
         auditLogs: { orderBy: { timestamp: "desc" }, take: 20 },
       },
@@ -29,7 +29,7 @@ export default async function AuthorityPage({ searchParams }: Props) {
     if (!device || device.userId !== session.user.id) notFound();
   } else {
     const first = await prisma.device.findFirst({
-      where: { userId: session.user.id },
+      where: { userId: session.user.id, deletedAt: null },
       orderBy: { createdAt: "desc" },
       include: {
         auditLogs: { orderBy: { timestamp: "desc" }, take: 20 },

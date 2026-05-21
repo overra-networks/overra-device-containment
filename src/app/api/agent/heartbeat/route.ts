@@ -15,8 +15,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { status_report } = body; // Optional runtime status from the agent
 
-    const device = await prisma.device.findUnique({
-      where: { id: payload.device_id },
+    const device = await prisma.device.findFirst({
+      where: { id: payload.device_id, deletedAt: null },
     });
 
     if (!device) {

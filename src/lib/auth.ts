@@ -56,12 +56,21 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid email or password");
         }
 
+        // Locked accounts are rejected with the SAME generic error as
+        // bad credentials — never leak the locked state to the login
+        // form (no account-status enumeration). Admins manage the
+        // locked flag via /api/admin/users/[id] PATCH.
+        if (user.lockedAt) {
+          throw new Error("Invalid email or password");
+        }
+
         return {
           id: user.id,
           email: user.email,
           name: user.name,
           walletAddress: user.walletAddress,
           plan: user.plan,
+          role: user.role,
           passwordChangedAt: user.passwordChangedAt.getTime(),
         };
       },
@@ -75,6 +84,7 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.walletAddress = (user as any).walletAddress;
         token.plan = (user as any).plan;
+        token.role = (user as any).role;
         token.passwordChangedAt = (user as any).passwordChangedAt;
         return token;
       }
@@ -113,6 +123,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).id = token.id as string;
         (session.user as any).walletAddress = token.walletAddress as string | null;
         (session.user as any).plan = token.plan as string;
+        (session.user as any).role = token.role as string;
       }
       return session;
     },

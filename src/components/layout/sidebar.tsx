@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { LayoutDashboard, Shield, Key, ScrollText, Monitor, Settings, LogOut, FileText, Lock, ShieldCheck, Download } from "lucide-react";
+import { LayoutDashboard, Shield, Key, ScrollText, Monitor, Settings, LogOut, FileText, Lock, ShieldCheck, Download, ShieldAlert } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { BrandMark } from "@/components/layout/brand-mark";
 import { SocialLinks } from "@/components/layout/social-links";
@@ -22,7 +22,7 @@ const disabledNav = [
   { label: "Documentation", icon: Lock },
 ];
 
-export function Sidebar() {
+export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const deviceId = searchParams.get("device");
@@ -101,6 +101,35 @@ export function Sidebar() {
             </Link>
           );
         })}
+
+        {/* Admin entry — only for genuine admins (DB-checked in layout) */}
+        {isAdmin && (
+          <Link
+            href="/admin"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: "9px 10px",
+              borderRadius: "6px",
+              fontSize: "13px",
+              fontWeight: 600,
+              textDecoration: "none",
+              color: isActive("/admin") ? "#B3122E" : "#FF3355",
+              background: isActive("/admin")
+                ? "rgba(255,51,85,0.08)"
+                : "transparent",
+              borderLeft: isActive("/admin")
+                ? "2px solid #FF3355"
+                : "2px solid transparent",
+            }}
+          >
+            <ShieldAlert
+              style={{ width: "14px", height: "14px", flexShrink: 0 }}
+            />
+            Admin
+          </Link>
+        )}
 
         {/* Divider */}
         <div style={{ margin: "8px 0", borderTop: "1px solid #DDE3EA" }} />

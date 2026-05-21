@@ -13,6 +13,11 @@ enum Plan {
   enterprise
 }
 
+enum Role {
+  user
+  admin
+}
+
 enum DeviceStatus {
   normal
   contained
@@ -39,8 +44,13 @@ model User {
   passwordHash      String   @map("password_hash")
   name              String
   walletAddress     String?  @map("wallet_address")
-  plan              Plan     @default(free)
-  passwordChangedAt DateTime @default(now()) @map("password_changed_at")
+  plan              Plan      @default(free)
+  role              Role      @default(user)
+  // When non-null, portal login is rejected by authorize() and active
+  // sessions are invalidated via the existing passwordChangedAt bump.
+  // Agents continue to authenticate independently (out of scope for v1).
+  lockedAt          DateTime? @map("locked_at")
+  passwordChangedAt DateTime  @default(now()) @map("password_changed_at")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
@@ -48,6 +58,7 @@ model User {
   auditLogs       AuditLog[]
   agentDownloads  AgentDownload[]
   resetTokens     PasswordResetToken[]
+  adminActions    AdminAuditLog[]      @relation("AdminAuditActor")
 
   @@map("users")
 }
@@ -87,13 +98,19 @@ model Device {
   extensionsFrozen   Boolean @default(false) @map("extensions_frozen")
   screenLocked       Boolean @default(false) @map("screen_locked")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  // Soft-delete: when non-null, the device is treated as deleted by the
+  // app but its audit_logs and containment_configs rows remain intact
+  // (preserves forensic history). All app reads MUST filter
+  // `deletedAt: null` except admin forensic views with ?includeDeleted=1.
+  deletedAt DateTime? @map("deleted_at")
 
   user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   containmentConfig  ContainmentConfig?
   auditLogs          AuditLog[]
 
+  @@index([deletedAt])
   @@map("devices")
 }
 
@@ -127,6 +144,26 @@ model AuditLog {
   @@index([timestamp])
   @@index([deviceId])
   @@map("audit_logs")
+}
+
+// Privileged-action trail for the admin panel. Separate from AuditLog
+// because admin actions are not always device-scoped (e.g. deleting a
+// user) and must never weaken AuditLog's required deviceId invariant.
+model AdminAuditLog {
+  id          String   @id @default(uuid())
+  adminUserId String   @map("admin_user_id")
+  action      String // e.g. "admin.user.delete", "admin.containment.enter"
+  targetType  String   @map("target_type") // "user" | "device"
+  targetId    String   @map("target_id")
+  metadata    Json?
+  ipAddress   String?  @map("ip_address")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  adminUser User @relation("AdminAuditActor", fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@index([adminUserId])
+  @@index([createdAt])
+  @@map("admin_audit_logs")
 }
 
 model AgentDownload {

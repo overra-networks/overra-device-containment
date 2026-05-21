@@ -23,8 +23,8 @@ export async function verifyAgentToken(req: NextRequest): Promise<AgentPayload |
 
     // DB check: device must exist, userId must match, token must not be revoked.
     // A null agentTokenHash means the device was explicitly revoked.
-    const device = await prisma.device.findUnique({
-      where: { id: payload.device_id },
+    const device = await prisma.device.findFirst({
+      where: { id: payload.device_id, deletedAt: null },
       select: { agentTokenHash: true, userId: true },
     });
 

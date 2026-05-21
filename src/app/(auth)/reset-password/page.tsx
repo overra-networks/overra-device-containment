@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { BrandMark } from "@/components/layout/brand-mark";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
+import { nextResetTokenState } from "@/lib/reset-token-capture";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -17,14 +18,18 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false);
 
   // Capture the token, then strip it from the URL bar so it does not leak
-  // via the Referer header if the user navigates away.
+  // via the Referer header if the user navigates away. The guarded helper
+  // prevents the effect re-firing (after replaceState) from wiping the
+  // captured token with empty params.
   useEffect(() => {
-    const t = params.get("token") ?? "";
-    setToken(t);
-    if (t && typeof window !== "undefined") {
+    const next = nextResetTokenState(token, params.get("token"));
+    if (next.token !== token) {
+      setToken(next.token);
+    }
+    if (next.shouldStripUrl && typeof window !== "undefined") {
       window.history.replaceState({}, "", "/reset-password");
     }
-  }, [params]);
+  }, [params, token]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

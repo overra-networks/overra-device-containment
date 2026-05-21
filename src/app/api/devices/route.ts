@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     }
 
     const devices = await prisma.device.findMany({
-      where: { userId: session.user.id },
+      where: { userId: session.user.id, deletedAt: null },
       include: {
         containmentConfig: true,
         _count: { select: { auditLogs: true } },

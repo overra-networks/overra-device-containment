@@ -17,7 +17,9 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    const device = await prisma.device.findUnique({ where: { id } });
+    const device = await prisma.device.findFirst({
+      where: { id, deletedAt: null },
+    });
     if (!device || device.userId !== session.user.id)
       return NextResponse.json({ error: "Device not found" }, { status: 404 });
 
@@ -53,7 +55,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    const device = await prisma.device.findUnique({ where: { id } });
+    const device = await prisma.device.findFirst({
+      where: { id, deletedAt: null },
+    });
     if (!device || device.userId !== session.user.id)
       return NextResponse.json({ error: "Device not found" }, { status: 404 });
 

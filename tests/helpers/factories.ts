@@ -12,9 +12,10 @@ export interface CreatedUser {
   name: string;
   passwordHash: string;
   plainPassword: string;
+  role: string;
 }
 
-export async function createUser(overrides: Partial<{ email: string; name: string; password: string; walletAddress: string | null; plan: "free" | "pro" | "enterprise" }> = {}): Promise<CreatedUser> {
+export async function createUser(overrides: Partial<{ email: string; name: string; password: string; walletAddress: string | null; plan: "free" | "pro" | "enterprise"; role: "user" | "admin" }> = {}): Promise<CreatedUser> {
   const n = next();
   const plainPassword = overrides.password ?? "password123";
   const passwordHash = await bcrypt.hash(plainPassword, 4);
@@ -25,6 +26,7 @@ export async function createUser(overrides: Partial<{ email: string; name: strin
       passwordHash,
       walletAddress: overrides.walletAddress ?? null,
       plan: overrides.plan ?? "free",
+      role: overrides.role ?? "user",
     },
   });
   return {
@@ -33,6 +35,7 @@ export async function createUser(overrides: Partial<{ email: string; name: strin
     name: user.name,
     passwordHash: user.passwordHash,
     plainPassword,
+    role: user.role,
   };
 }
 
