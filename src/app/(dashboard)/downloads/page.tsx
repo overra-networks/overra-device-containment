@@ -239,8 +239,9 @@ export default function DownloadsPage() {
         </p>
       </div>
 
-      {/* Platform cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+      {/* Platform cards — auto-fit so the 3-up desktop layout collapses to 2-up
+          on tablets and 1-up on phones without a media query. */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
         {platforms.map(({ id, label, icon: Icon, ext, desc }) => (
           <Card key={id} style={{ transition: "border-color 0.15s" }}>
             <CardContent
