@@ -52,6 +52,16 @@ export const E2E_LOCK_TARGET_USER = {
   name: "E2E Lock Target",
 };
 
+// Dedicated user for the change-password spec. Kept separate so the
+// password mutation can't strand E2E_TEST_USER for the auth/downloads/
+// admin specs that share it.
+export const E2E_PASSWORD_CHANGE_USER = {
+  email: "e2e-passchange@example.com",
+  password: "supersecret",
+  newPassword: "newsupersecret",
+  name: "E2E Pass Change",
+};
+
 async function globalSetup(): Promise<void> {
   const url = process.env.DATABASE_URL ?? "";
   if (!/overra_test/i.test(url)) {
@@ -117,6 +127,14 @@ async function globalSetup(): Promise<void> {
       `INSERT INTO "users" (id, email, password_hash, name, plan, role, created_at, updated_at)
        VALUES ($1, $2, $3, $4, 'free', 'user', NOW(), NOW())`,
       [randomUUID(), E2E_LOCK_TARGET_USER.email, lockHash, E2E_LOCK_TARGET_USER.name]
+    );
+
+    // Dedicated user for the change-password spec.
+    const passChangeHash = await bcrypt.hash(E2E_PASSWORD_CHANGE_USER.password, 4);
+    await client.query(
+      `INSERT INTO "users" (id, email, password_hash, name, plan, role, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, 'free', 'user', NOW(), NOW())`,
+      [randomUUID(), E2E_PASSWORD_CHANGE_USER.email, passChangeHash, E2E_PASSWORD_CHANGE_USER.name]
     );
   } finally {
     await client.end();
