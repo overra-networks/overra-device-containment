@@ -2,6 +2,8 @@
 
 :root {
   color-scheme: light;
+  --sidebar-width: 220px;
+  --mobile-breakpoint: 768px;
 }
 
 /*
@@ -60,4 +62,98 @@ input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset;
   -webkit-text-fill-color: #0E1C29;
   caret-color: #0E1C29;
+}
+
+/*
+ * Responsive layout shell.
+ *
+ * The dashboard and admin layouts pair a fixed-position sidebar with a
+ * margin-offset main area. On mobile the sidebar transforms off-screen
+ * and the main margin collapses. A separate backdrop element catches
+ * dismiss-taps when the drawer is open.
+ *
+ * Layout colors / fonts live in inline styles per project convention;
+ * only positioning, breakpoint, and drawer-state rules live here.
+ */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #F5F5F5;
+}
+
+.app-sidebar {
+  width: var(--sidebar-width);
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 40;
+  transform: translateX(0);
+  transition: transform 0.2s ease;
+}
+
+.app-sidebar-backdrop {
+  display: none;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  margin-left: var(--sidebar-width);
+}
+
+.app-main-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.mobile-nav-toggle {
+  display: none;
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .app-sidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+  .app-sidebar.is-open {
+    transform: translateX(0);
+    box-shadow: 0 4px 24px rgba(14, 28, 41, 0.2);
+  }
+  .app-sidebar-backdrop.is-open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(14, 28, 41, 0.45);
+    z-index: 39;
+  }
+  .app-main {
+    margin-left: 0;
+  }
+  .app-main-inner {
+    padding: 16px;
+  }
+  .mobile-nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid #DDE3EA;
+    background: #FFFFFF;
+    color: #0E1C29;
+    cursor: pointer;
+    margin-bottom: 16px;
+  }
+  .mobile-nav-toggle:active {
+    background: #F5F5F5;
+  }
 }

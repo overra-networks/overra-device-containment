@@ -196,6 +196,7 @@ export default async function OverviewPage({ searchParams }: Props) {
                   Recent Activity
                 </span>
               </div>
+              <div className="table-scroll">
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid #DDE3EA" }}>
@@ -240,6 +241,7 @@ export default async function OverviewPage({ searchParams }: Props) {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         </>
