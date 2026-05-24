@@ -38,7 +38,7 @@ describe("POST /api/auth/reset-password", () => {
 
     const updated = await prisma.user.findUnique({ where: { id: user.id } });
     expect(updated!.passwordHash).not.toBe(original!.passwordHash);
-    expect(await bcrypt.compare("newpassword123", updated!.passwordHash)).toBe(true);
+    expect(await bcrypt.compare("newpassword123", updated!.passwordHash!)).toBe(true);
     expect(updated!.passwordChangedAt.getTime()).toBeGreaterThan(
       original!.passwordChangedAt.getTime()
     );

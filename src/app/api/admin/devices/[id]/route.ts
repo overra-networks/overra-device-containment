@@ -17,7 +17,10 @@ export async function DELETE(
 
     const device = await prisma.device.findFirst({
       where: { id, deletedAt: null },
-      select: { id: true, user: { select: { email: true } } },
+      select: {
+        id: true,
+        user: { select: { email: true, walletAddress: true } },
+      },
     });
     if (!device) {
       return NextResponse.json({ error: "Device not found" }, { status: 404 });
@@ -33,7 +36,12 @@ export async function DELETE(
       action: "admin.device.delete",
       targetType: "device",
       targetId: id,
-      metadata: { ownerEmail: device.user.email },
+      // For wallet-only owners email is null. We log both fields so the
+      // audit row identifies the owner regardless of account type.
+      metadata: {
+        ownerEmail: device.user.email,
+        ownerWallet: device.user.walletAddress,
+      },
       ipAddress: clientIp(req),
     });
 

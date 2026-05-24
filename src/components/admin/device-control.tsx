@@ -13,7 +13,7 @@ interface Device {
   id: string;
   name: string;
   status: string;
-  ownerEmail: string;
+  ownerLabel: string;
   walletAuthority: string | null;
   config: Config;
 }
@@ -68,7 +68,7 @@ export function AdminDeviceControl({ device }: { device: Device }) {
           }}
         >
           This device requires a wallet-authority signature owned by{" "}
-          <strong>{device.ownerEmail}</strong>. Admin cannot produce that
+          <strong>{device.ownerLabel}</strong>. Admin cannot produce that
           signature, so containment enter/release is unavailable here by
           design. Containment config can still be edited.
         </div>
@@ -95,7 +95,7 @@ export function AdminDeviceControl({ device }: { device: Device }) {
             marginBottom: "14px",
           }}
         >
-          Acting on a device owned by {device.ownerEmail}. This is logged to
+          Acting on a device owned by {device.ownerLabel}. This is logged to
           the admin audit trail.
         </p>
 

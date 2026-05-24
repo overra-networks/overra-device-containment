@@ -8,11 +8,53 @@ import { Loader2 } from "lucide-react";
 import { BrandMark } from "@/components/layout/brand-mark";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
+import { signInWithMetaMask } from "@/lib/wallet-signin";
 
 export default function SignupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [walletLoading, setWalletLoading] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+
+  async function handleWalletSignIn() {
+    setWalletLoading(true);
+    try {
+      const result = await signInWithMetaMask();
+      switch (result.status) {
+        case "ok":
+          router.push("/dashboard");
+          router.refresh();
+          return;
+        case "no_metamask":
+          toast({
+            title: "MetaMask not detected",
+            description: "Install the MetaMask browser extension to continue with a wallet.",
+            variant: "error",
+          });
+          return;
+        case "deep_link":
+          // Mobile: bounce into MetaMask Mobile's in-app browser. If the
+          // app isn't installed, the link routes through the store first.
+          window.location.href = result.url;
+          return;
+        case "rejected":
+          toast({
+            title: "Signature rejected",
+            description: "You declined the wallet signature.",
+            variant: "error",
+          });
+          return;
+        default:
+          toast({
+            title: "Wallet sign-in failed",
+            description: result.message,
+            variant: "error",
+          });
+      }
+    } finally {
+      setWalletLoading(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -158,6 +200,71 @@ export default function SignupPage() {
           )}
         </button>
       </form>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          margin: "20px 0 14px",
+          fontSize: "10px",
+          letterSpacing: "0.14em",
+          color: "#5A7080",
+          textTransform: "uppercase",
+          fontFamily: "var(--font-mono, monospace)",
+        }}
+      >
+        <span style={{ flex: 1, height: "1px", background: "#1C2E4A" }} />
+        or
+        <span style={{ flex: 1, height: "1px", background: "#1C2E4A" }} />
+      </div>
+
+      <button
+        type="button"
+        onClick={handleWalletSignIn}
+        disabled={walletLoading || loading}
+        style={{
+          width: "100%",
+          height: "44px",
+          borderRadius: "8px",
+          border: "1px solid #4878FF",
+          background: "transparent",
+          color: "#4878FF",
+          fontSize: "12px",
+          fontWeight: 600,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          cursor: walletLoading || loading ? "not-allowed" : "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+          opacity: walletLoading || loading ? 0.6 : 1,
+          transition: "all 0.15s",
+          fontFamily: "var(--font-mono, monospace)",
+        }}
+      >
+        {walletLoading ? (
+          <>
+            <Loader2 style={{ width: "14px", height: "14px" }} className="animate-spin" />
+            Waiting for wallet...
+          </>
+        ) : (
+          "Continue with MetaMask"
+        )}
+      </button>
+      <p
+        style={{
+          marginTop: "10px",
+          fontSize: "11px",
+          color: "#8A9BAB",
+          lineHeight: 1.4,
+          textAlign: "center",
+        }}
+      >
+        Wallet-only accounts have no email recovery. If you lose access to the
+        wallet, the account is unrecoverable.
+      </p>
 
       <p style={{ textAlign: "center", marginTop: "24px", fontSize: "12px", color: "#8A9BAB" }}>
         Already have an account?{" "}

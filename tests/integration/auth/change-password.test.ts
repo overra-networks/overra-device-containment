@@ -62,7 +62,7 @@ describe("POST /api/auth/change-password", () => {
 
     const after = await prisma.user.findUnique({ where: { id: user.id } });
     expect(after!.passwordHash).not.toBe(before!.passwordHash);
-    expect(await bcrypt.compare("newpassword456", after!.passwordHash)).toBe(true);
+    expect(await bcrypt.compare("newpassword456", after!.passwordHash!)).toBe(true);
     expect(after!.passwordChangedAt.getTime()).toBeGreaterThan(
       before!.passwordChangedAt.getTime()
     );

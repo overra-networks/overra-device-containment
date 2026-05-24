@@ -35,7 +35,7 @@ describe("POST /api/auth/signup", () => {
     const dbUser = await prisma.user.findUnique({ where: { email: "alice@example.com" } });
     expect(dbUser).not.toBeNull();
     expect(dbUser!.passwordHash).not.toBe("supersecret");
-    expect(dbUser!.passwordHash.startsWith("$2")).toBe(true);
+    expect(dbUser!.passwordHash!.startsWith("$2")).toBe(true);
   });
 
   it("lowercases and trims the email", async () => {

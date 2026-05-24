@@ -12,7 +12,7 @@ interface DeviceRow {
 }
 interface AdminUser {
   id: string;
-  email: string;
+  email: string | null;
   name: string;
   plan: string;
   role: string;
@@ -59,6 +59,12 @@ export function AdminUserDetail({ user }: { user: AdminUser }) {
   const [showLock, setShowLock] = useState(false);
   const [lockConfirm, setLockConfirm] = useState("");
   const locked = user.lockedAt !== null;
+  // The string typed in lock/delete confirmation must match the human
+  // identifier shown on the page. For email accounts that's the email;
+  // for wallet-only accounts it's the wallet address. Computed once so
+  // the displayed value and the comparison value can never drift apart.
+  const identifier = user.email ?? user.walletAddress ?? user.id;
+  const identifierLabel = user.email ? "email" : "wallet address";
 
   const dirty =
     name !== user.name || plan !== user.plan || role !== user.role;
@@ -138,10 +144,11 @@ export function AdminUserDetail({ user }: { user: AdminUser }) {
             marginTop: "8px",
           }}
         >
-          {user.email}
+          {identifier}
         </h1>
         <p style={{ fontSize: "12px", color: "#5A7080" }}>
           Joined {new Date(user.createdAt).toLocaleDateString()} ·{" "}
+          {user.email ? `email ${user.email}` : "no email"} ·{" "}
           {user.walletAddress
             ? `wallet ${user.walletAddress.slice(0, 10)}…`
             : "no wallet"}
@@ -267,18 +274,19 @@ export function AdminUserDetail({ user }: { user: AdminUser }) {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <span style={{ fontSize: "12px", color: "#5A7080" }}>
-                Type the email <strong>{user.email}</strong> to confirm:
+                Type the {identifierLabel} <strong>{identifier}</strong> to
+                confirm:
               </span>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                 <input
                   style={fieldStyle}
                   value={lockConfirm}
                   onChange={(e) => setLockConfirm(e.target.value)}
-                  placeholder={user.email}
+                  placeholder={identifier}
                 />
                 <button
                   onClick={() => toggleLock(true)}
-                  disabled={lockConfirm !== user.email || busy}
+                  disabled={lockConfirm !== identifier || busy}
                   style={{
                     padding: "9px 18px",
                     fontSize: "13px",
@@ -286,11 +294,11 @@ export function AdminUserDetail({ user }: { user: AdminUser }) {
                     borderRadius: "6px",
                     border: "none",
                     cursor:
-                      lockConfirm !== user.email || busy
+                      lockConfirm !== identifier || busy
                         ? "not-allowed"
                         : "pointer",
                     background:
-                      lockConfirm !== user.email || busy
+                      lockConfirm !== identifier || busy
                         ? "#C4CDD7"
                         : "#FF3355",
                     color: "#FFFFFF",
@@ -418,18 +426,19 @@ export function AdminUserDetail({ user }: { user: AdminUser }) {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             <span style={{ fontSize: "12px", color: "#5A7080" }}>
-              Type the email <strong>{user.email}</strong> to confirm:
+              Type the {identifierLabel} <strong>{identifier}</strong> to
+              confirm:
             </span>
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               <input
                 style={fieldStyle}
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
-                placeholder={user.email}
+                placeholder={identifier}
               />
               <button
                 onClick={doDelete}
-                disabled={confirmText !== user.email || busy}
+                disabled={confirmText !== identifier || busy}
                 style={{
                   padding: "9px 18px",
                   fontSize: "13px",
@@ -437,11 +446,11 @@ export function AdminUserDetail({ user }: { user: AdminUser }) {
                   borderRadius: "6px",
                   border: "none",
                   cursor:
-                    confirmText !== user.email || busy
+                    confirmText !== identifier || busy
                       ? "not-allowed"
                       : "pointer",
                   background:
-                    confirmText !== user.email || busy
+                    confirmText !== identifier || busy
                       ? "#C4CDD7"
                       : "#FF3355",
                   color: "#FFFFFF",

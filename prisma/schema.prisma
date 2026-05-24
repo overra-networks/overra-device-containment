@@ -40,10 +40,12 @@ enum AuditResult {
 
 model User {
   id                String   @id @default(uuid())
-  email             String   @unique
-  passwordHash      String   @map("password_hash")
+  // Nullable to support wallet-only accounts. App code MUST guarantee
+  // every row has either (email + passwordHash) OR walletAddress set.
+  email             String?  @unique
+  passwordHash      String?  @map("password_hash")
   name              String
-  walletAddress     String?  @map("wallet_address")
+  walletAddress     String?  @unique @map("wallet_address")
   plan              Plan      @default(free)
   role              Role      @default(user)
   // When non-null, portal login is rejected by authorize() and active

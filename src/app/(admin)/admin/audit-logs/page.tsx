@@ -19,7 +19,9 @@ export default async function AdminAuditLogsPage({ searchParams }: Props) {
       skip: (currentPage - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       include: {
-        adminUser: { select: { id: true, email: true } },
+        adminUser: {
+          select: { id: true, email: true, walletAddress: true },
+        },
       },
     }),
     prisma.adminAuditLog.count(),
@@ -42,7 +44,10 @@ export default async function AdminAuditLogsPage({ searchParams }: Props) {
           action: l.action,
           targetType: l.targetType,
           targetId: l.targetId,
-          adminEmail: l.adminUser.email,
+          adminEmail:
+            l.adminUser.email ??
+            l.adminUser.walletAddress ??
+            l.adminUser.id,
           ipAddress: l.ipAddress,
           createdAt: l.createdAt.toISOString(),
         }))}

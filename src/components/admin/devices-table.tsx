@@ -8,7 +8,7 @@ interface DeviceRow {
   hostname: string;
   status: string;
   lastHeartbeat: string | null;
-  ownerEmail: string;
+  ownerLabel: string;
   ownerId: string;
 }
 
@@ -118,7 +118,7 @@ export function AdminDevicesTable({
                   href={`/admin/users/${d.ownerId}`}
                   style={{ color: "#5A7080" }}
                 >
-                  {d.ownerEmail}
+                  {d.ownerLabel}
                 </Link>
               </td>
               <td style={cell}>
