@@ -20,6 +20,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
     ? {
         OR: [
           { email: { contains: term, mode: "insensitive" as const } },
+          { walletAddress: { contains: term, mode: "insensitive" as const } },
           { name: { contains: term, mode: "insensitive" as const } },
         ],
       }
@@ -34,6 +35,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
       select: {
         id: true,
         email: true,
+        walletAddress: true,
         name: true,
         plan: true,
         role: true,
@@ -52,9 +54,13 @@ export default async function AdminUsersPage({ searchParams }: Props) {
       </h1>
       <AdminUsersTable
         users={users.map((u) => ({
-          ...u,
-          createdAt: u.createdAt.toISOString(),
+          id: u.id,
+          identifier: u.email ?? u.walletAddress ?? u.id,
+          name: u.name,
+          plan: u.plan,
+          role: u.role,
           lockedAt: u.lockedAt ? u.lockedAt.toISOString() : null,
+          createdAt: u.createdAt.toISOString(),
           deviceCount: u._count.devices,
         }))}
         total={total}

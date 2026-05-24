@@ -29,11 +29,14 @@ export async function createUser(overrides: Partial<{ email: string; name: strin
       role: overrides.role ?? "user",
     },
   });
+  // The factory always supplies email + passwordHash, so the DB row is
+  // guaranteed to have both. Schema allows null for wallet-only accounts
+  // (created via the wallet auth provider, not this helper).
   return {
     id: user.id,
-    email: user.email,
+    email: user.email!,
     name: user.name,
-    passwordHash: user.passwordHash,
+    passwordHash: user.passwordHash!,
     plainPassword,
     role: user.role,
   };

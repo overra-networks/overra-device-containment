@@ -6,7 +6,9 @@ import { useState } from "react";
 
 interface AdminUserRow {
   id: string;
-  email: string;
+  // Display label: email for email accounts, wallet address for
+  // wallet-only accounts, user id as last-resort fallback.
+  identifier: string;
   name: string;
   plan: string;
   role: string;
@@ -113,7 +115,7 @@ export function AdminUsersTable({
           {users.map((u) => (
             <tr key={u.id}>
               <td style={cell}>
-                {u.email}
+                {u.identifier}
                 {u.lockedAt && (
                   <span
                     style={{

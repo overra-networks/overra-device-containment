@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       select: { id: true, email: true },
     });
 
-    if (user) {
+    if (user && user.email) {
       try {
         const rawToken = await createResetToken(user.id, ip);
         const baseUrl =

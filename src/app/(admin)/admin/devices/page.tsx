@@ -29,7 +29,7 @@ export default async function AdminDevicesPage({ searchParams }: Props) {
         hostname: true,
         status: true,
         lastHeartbeat: true,
-        user: { select: { id: true, email: true } },
+        user: { select: { id: true, email: true, walletAddress: true } },
       },
     }),
     prisma.device.count({ where }),
@@ -49,7 +49,7 @@ export default async function AdminDevicesPage({ searchParams }: Props) {
           lastHeartbeat: d.lastHeartbeat
             ? d.lastHeartbeat.toISOString()
             : null,
-          ownerEmail: d.user.email,
+          ownerLabel: d.user.email ?? d.user.walletAddress ?? d.user.id,
           ownerId: d.user.id,
         }))}
         total={total}

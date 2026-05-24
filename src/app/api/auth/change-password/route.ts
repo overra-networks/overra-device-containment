@@ -79,6 +79,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Wallet-only accounts have no password to change.
+    if (!user.passwordHash) {
+      return NextResponse.json(
+        {
+          error:
+            "This account has no password set. You signed in with a wallet.",
+        },
+        { status: 400 }
+      );
+    }
+
     const valid = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!valid) {
       return NextResponse.json(

@@ -31,11 +31,14 @@ export default async function AdminDeviceDetailPage({ params }: Props) {
           lockScreen: true,
         },
       },
-      user: { select: { id: true, email: true } },
+      user: { select: { id: true, email: true, walletAddress: true } },
     },
   });
 
   if (!device) notFound();
+
+  const ownerLabel =
+    device.user.email ?? device.user.walletAddress ?? device.user.id;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -62,7 +65,7 @@ export default async function AdminDeviceDetailPage({ params }: Props) {
             href={`/admin/users/${device.user.id}`}
             style={{ color: "#5A7080", fontWeight: 600 }}
           >
-            {device.user.email}
+            {ownerLabel}
           </Link>
           {device.walletAuthority
             ? " · wallet-authority required"
@@ -75,7 +78,7 @@ export default async function AdminDeviceDetailPage({ params }: Props) {
           id: device.id,
           name: device.name,
           status: device.status,
-          ownerEmail: device.user.email,
+          ownerLabel,
           walletAuthority: device.walletAuthority,
           config: device.containmentConfig ?? {
             disableNetwork: true,
@@ -89,7 +92,7 @@ export default async function AdminDeviceDetailPage({ params }: Props) {
       <AdminDeviceDangerZone
         deviceId={device.id}
         deviceHostname={device.hostname}
-        ownerEmail={device.user.email}
+        ownerLabel={ownerLabel}
       />
     </div>
   );

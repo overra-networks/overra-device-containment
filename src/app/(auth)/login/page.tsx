@@ -8,10 +8,12 @@ import { Loader2 } from "lucide-react";
 import { BrandMark } from "@/components/layout/brand-mark";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
+import { signInWithMetaMask } from "@/lib/wallet-signin";
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [walletLoading, setWalletLoading] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -35,6 +37,46 @@ export default function LoginPage() {
       toast({ title: "An unexpected error occurred", variant: "error" });
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleWalletSignIn() {
+    setWalletLoading(true);
+    try {
+      const result = await signInWithMetaMask();
+      switch (result.status) {
+        case "ok":
+          router.push("/dashboard");
+          router.refresh();
+          return;
+        case "no_metamask":
+          toast({
+            title: "MetaMask not detected",
+            description: "Install the MetaMask browser extension to sign in with a wallet.",
+            variant: "error",
+          });
+          return;
+        case "deep_link":
+          // Mobile: bounce into MetaMask Mobile's in-app browser. If the
+          // app isn't installed, the link routes through the store first.
+          window.location.href = result.url;
+          return;
+        case "rejected":
+          toast({
+            title: "Signature rejected",
+            description: "You declined the wallet signature.",
+            variant: "error",
+          });
+          return;
+        default:
+          toast({
+            title: "Wallet sign-in failed",
+            description: result.message,
+            variant: "error",
+          });
+      }
+    } finally {
+      setWalletLoading(false);
     }
   }
 
@@ -159,6 +201,59 @@ export default function LoginPage() {
           )}
         </button>
       </form>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          margin: "20px 0 14px",
+          fontSize: "10px",
+          letterSpacing: "0.14em",
+          color: "#5A7080",
+          textTransform: "uppercase",
+          fontFamily: "var(--font-mono, monospace)",
+        }}
+      >
+        <span style={{ flex: 1, height: "1px", background: "#1C2E4A" }} />
+        or
+        <span style={{ flex: 1, height: "1px", background: "#1C2E4A" }} />
+      </div>
+
+      <button
+        type="button"
+        onClick={handleWalletSignIn}
+        disabled={walletLoading || loading}
+        style={{
+          width: "100%",
+          height: "44px",
+          borderRadius: "8px",
+          border: "1px solid #4878FF",
+          background: "transparent",
+          color: "#4878FF",
+          fontSize: "12px",
+          fontWeight: 600,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          cursor: walletLoading || loading ? "not-allowed" : "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+          opacity: walletLoading || loading ? 0.6 : 1,
+          transition: "all 0.15s",
+          fontFamily: "var(--font-mono, monospace)",
+        }}
+      >
+        {walletLoading ? (
+          <>
+            <Loader2 style={{ width: "14px", height: "14px" }} className="animate-spin" />
+            Waiting for wallet...
+          </>
+        ) : (
+          "Sign in with MetaMask"
+        )}
+      </button>
 
       <p
         style={{

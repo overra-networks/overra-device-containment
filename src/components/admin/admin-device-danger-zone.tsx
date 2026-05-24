@@ -6,7 +6,7 @@ import { useState } from "react";
 interface Props {
   deviceId: string;
   deviceHostname: string;
-  ownerEmail: string;
+  ownerLabel: string;
 }
 
 const card: React.CSSProperties = {
@@ -28,7 +28,7 @@ const fieldStyle: React.CSSProperties = {
 export function AdminDeviceDangerZone({
   deviceId,
   deviceHostname,
-  ownerEmail,
+  ownerLabel,
 }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -72,7 +72,7 @@ export function AdminDeviceDangerZone({
         }}
       >
         Removing this device disables its agent and hides it from{" "}
-        <strong>{ownerEmail}</strong>&apos;s account. The audit history is
+        <strong>{ownerLabel}</strong>&apos;s account. The audit history is
         preserved and the action is recorded in the admin trail.
       </p>
       {!open ? (
