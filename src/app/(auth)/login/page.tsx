@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { BrandMark } from "@/components/layout/brand-mark";
+import { MetaMaskFox } from "@/components/icons/metamask-fox";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { signInWithMetaMask } from "@/lib/wallet-signin";
@@ -228,9 +229,9 @@ export default function LoginPage() {
           width: "100%",
           height: "44px",
           borderRadius: "8px",
-          border: "1px solid #4878FF",
-          background: "transparent",
-          color: "#4878FF",
+          border: "1px solid #1C2E4A",
+          background: "#131F32",
+          color: "#E8F0FF",
           fontSize: "12px",
           fontWeight: 600,
           letterSpacing: "0.1em",
@@ -239,8 +240,8 @@ export default function LoginPage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: "8px",
-          opacity: walletLoading || loading ? 0.6 : 1,
+          gap: "10px",
+          opacity: walletLoading || loading ? 0.55 : 1,
           transition: "all 0.15s",
           fontFamily: "var(--font-mono, monospace)",
         }}
@@ -251,7 +252,10 @@ export default function LoginPage() {
             Waiting for wallet...
           </>
         ) : (
-          "Sign in with MetaMask"
+          <>
+            <MetaMaskFox size={16} />
+            Sign in with MetaMask
+          </>
         )}
       </button>
 
